@@ -81,10 +81,7 @@ impl Srs {
     pub fn from_powers(g1: Vec<G1Affine>, g2: Vec<G2Affine>) -> Result<Self, Error> {
         let domain = domain_of(&g1, &g2)?;
         // [λᵢ(τ)]₁ = Σⱼ (ω^(−ij)/N)·[τʲ]₁: the inverse FFT of the powers.
-        let powers: Vec<G1Projective> = g1[..domain.size()]
-            .par_iter()
-            .map(|&p| p.into())
-            .collect();
+        let powers: Vec<G1Projective> = g1[..domain.size()].par_iter().map(|&p| p.into()).collect();
         let lagrange = G1Projective::normalize_batch(&domain.ifft(&powers));
 
         Ok(Self {
