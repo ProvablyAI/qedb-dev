@@ -6,6 +6,17 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- The license has a Change Date: on 2029-11-18, it changes to GPL-3.0-or-later.
+- In the benchmark, `QMatch` selects one row in 128, as in the paper: 1,024 rows at 2^17.
+
+### Fixed
+
+- The benchmark planted `QTot`'s rows at regular intervals, which made the polynomials of the
+  selected set sparse and the proofs unrealistically fast. The planted rows are now random, and the
+  README's benchmark table is updated.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added

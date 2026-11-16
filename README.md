@@ -17,7 +17,7 @@ SQL into these tests is up to the application; the benchmark shows how for three
 The paper describes the database with two kinds of objects:
 
 - **sets of rows**, such as the rows where `country = 'IT'`;
-- **slices**, the values of a column, or of a combination of columns, on the rows.
+- **slices**, vectors with one value per row, such as a column or a combination of columns.
 
 The verifier only holds short *handles* to them: KZG commitments over BLS12-381. The prover
 convinces the verifier of facts about the sets and slices behind the handles with **tests**:
@@ -34,6 +34,15 @@ A query is a sequence of tests. For example, `SELECT SUM(price) … WHERE …` i
 `price` slice on the set of selected rows.
 
 ## Example
+
+Add the crate to `Cargo.toml`:
+
+```toml
+[dependencies]
+qedb-primitives = { git = "https://github.com/ProvablyAI/qedb-primitives" }
+```
+
+The sum of a column on a set of rows, as in `SELECT SUM(col) … WHERE …`:
 
 ```rust
 use ark_bls12_381::Fr;
@@ -81,23 +90,30 @@ The tests prove the same statements as the paper's, with faster constructions:
 
 - `QTot`: `SELECT SUM(price) … WHERE account_id = 5938 AND trade_date = '2025-01-01'`;
 - `QCntTx`: `SELECT COUNT(*) … WHERE trade_date BETWEEN '2025-01-01' AND '2025-03-31'`;
-- `QMatch`: `SELECT tx_id, price, expected_price, price = expected_price … WHERE trade_date = '2025-04-05'`.
+- `QMatch`: `SELECT tx_id, price, expected_price, price = expected_price … WHERE trade_date = '2025-04-05'`,
+  which selects one row in 128, as in the paper.
 
 ```bash
 make bench                                     # 2^10 to 2^16 rows
-QEDB_LOG_ROWS=17 cargo bench --bench transactions
+QEDB_LOG_ROWS=17,20 cargo bench --bench transactions
 ```
 
-On an Apple M3 Pro (11 cores):
+Proving grows linearly with the number of rows, while verification stays in milliseconds. Best of
+3 runs on an Apple M3 Pro (11 cores):
+
+![Proving and verification time of QTot, QCntTx and QMatch from 2^15 to 2^20 rows](docs/benchmarks.svg)
 
 | Rows | Query | Prove | Verify | Proof |
 |---|---|---|---|---|
-| 2^16 | `QTot` | 0.56 s | 6.2 ms | 1,120 B |
-| 2^16 | `QCntTx` | 2.59 s | 14.4 ms | 7,248 B |
-| 2^16 | `QMatch` (171 rows) | 0.57 s | 7.2 ms | 720 B |
-| 2^17 | `QTot` | 1.07 s | 6.1 ms | 1,120 B |
-| 2^17 | `QCntTx` | 4.76 s | 14.5 ms | 7,248 B |
-| 2^17 | `QMatch` (365 rows) | 1.03 s | 7.2 ms | 720 B |
+| 2^16 | `QTot` | 1.03 s | 6.1 ms | 1,120 B |
+| 2^16 | `QCntTx` | 2.44 s | 14.4 ms | 7,248 B |
+| 2^16 | `QMatch` (512 rows) | 0.54 s | 7.3 ms | 720 B |
+| 2^17 | `QTot` | 2.00 s | 6.1 ms | 1,120 B |
+| 2^17 | `QCntTx` | 4.56 s | 14.9 ms | 7,248 B |
+| 2^17 | `QMatch` (1,024 rows) | 0.98 s | 7.4 ms | 720 B |
+| 2^20 | `QTot` | 13.5 s | 6.1 ms | 1,120 B |
+| 2^20 | `QCntTx` | 31.3 s | 14.4 ms | 7,248 B |
+| 2^20 | `QMatch` (8,192 rows) | 6.48 s | 9.8 ms | 720 B |
 
 The verifier key is 572 bytes, and proof sizes do not depend on the number of rows.
 
@@ -126,5 +142,6 @@ This project is licensed under the [Business Source License 1.1](LICENSE.md).
 - Copyright © 2026 Provably Technologies LTD
 - You may not offer the Software as a commercial hosted service without purchasing a commercial
   license from [Provably Technologies Ltd](https://provably.ai).
+- On 2029-11-18, the license changes to GPL-3.0-or-later.
 
 See the [LICENSE](LICENSE.md) file for full terms and details.
