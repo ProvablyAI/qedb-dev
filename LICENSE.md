@@ -7,7 +7,7 @@ Copyright © 2026 Provably Technologies LTD
 Use Limitation:  You may not offer the Software as a commercial hosted
 service without purchasing a commercial license from Provably Technologies Ltd.
 
-Change Date:     
+Change Date:     2029-11-18
 Change License:  GPL-3.0-or-later
 
 Business Source License 1.1
