@@ -70,8 +70,23 @@ impl Table {
                 }
             })
             .collect();
-        // A few transactions of the account on the date of QTot.
-        for j in (0..n).step_by(n / 4).take(4) {
+        // QMatch selects n / 128 rows, as in the paper's evaluation: 1,024 rows at 2^17.
+        for d in table.trade_date.iter_mut().filter(|d| **d == MATCH_DATE) {
+            *d = date(95);
+        }
+        let mut planted = 0;
+        while planted < n / 128 {
+            let j = rng.gen_range(0..n);
+            if table.trade_date[j] != MATCH_DATE {
+                table.trade_date[j] = MATCH_DATE;
+                planted += 1;
+            }
+        }
+        // A few transactions of the account on the date of QTot. The planted rows are random:
+        // rows at regular intervals make the polynomials of the selected set sparse, and the
+        // proofs unrealistically fast.
+        for _ in 0..4 {
+            let j = rng.gen_range(0..n);
             table.account_id[j] = ACCOUNT;
             table.trade_date[j] = TOT_DATE;
         }
